@@ -1,0 +1,482 @@
+---------------------------
+JOT File Format Description
+---------------------------
+
+* Consult the provided tutorial file in directory
+  'jot/manual/tutorial-4/jot_files.npr' for the full set of data
+  files which are referenced in part in this document.  (Visit
+  http://jot.cs.princeton.edu/ to get a Windows executable with
+  user manual, tutorials, and example 3D model files.)
+
+A more definitive version of this document will find its way into the
+html/pdf version of the documentation pending a code update that will
+clean up the file format (in a backward compatible way!)
+
+Without further ado...
+
+The following file except describes part of the 
+dancing cactus scene from tutorial #4 in the manual:
+(The mustache and hat meshes are omitted.)
+
+
+============== Begin 'cactus_export.jot' =================
+#jot
+
+TEXBODY         {
+        name    cactus_dancingCactus
+        xform   {{1 0 0 0 }{0 1 0 0 }{0 0 1 0 }{0 0 0 1 }}
+        mesh_data_file  { cactus_dancingCactus.sm }
+        }
+CREATE  { cactus_dancingCactus
+        }
+CHNG_CAM        { {-0.325183 4.99092 -13.2635 }{-0.300943 4.84341 -12.2747 }{-0.321568 5.97998 -13.116 }{0.300943 4.84341 -12.2747 }0.16 1 2.25
+        }
+CHNG_WIN        { 4 29 640 480
+        }
+CHNG_VIEW       {
+        VIEW    {
+                view_animator   {
+                        Animator        {
+                                fps     30
+                                start_frame     1
+                                end_frame       120
+                                name    { cactus_export  }
+                                } }
+                view_data_file  { cactus_export }
+                }
+        }
+============== End 'cactus_export.jot' =================
+
+This file describes the meshes, camera, scene and animation
+parameters of the dancing cactus example. The fields of this
+file are examined in turn. 
+
+The .jot file format beings with a '#jot' header.
+
+Note that the file format generally consists of a set of 
+named fields (e.g. TEXBODY).
+
+Each named field is followed by an optional opening brace ({), 
+the data associated with the field, and then an optional 
+closing brace (}).  
+
+Note that the braces are only absent for fields containing simple data, 
+like a single string (e.g. CREATE). Furthmore, the use of braces 
+(or lack thereof) is particular to a given field, and isn't actually 
+"optional".
+
+Each named field should begin on a new line.
+
+Data within a named field may be simple (e.g. CREATE is a string)
+or may consist of additional named fields (e.g. TEXBODY can contain
+name, xform, etc. sub-fields), each with their own associated data.
+
+When the data in a named field is simple (e.g. a single integer), the
+data generally begins on the same line as the field label, following
+the options opening brace ({).
+
+When the data in a named field consists of a set of named sub-field, 
+each sub-field label is placed on its own line, and intented by one tab.
+Sub-fields may also contian sub-sub-field, etc. There is no limit
+to the depth of field embedding.  The tabbing rule should aid readability.
+
+* TEXBODY 
+
+    Decribes a named, transformed, mesh-based object to be loaded 
+    into the system. In the example above, the cactus planet itself 
+    is loaded and named 'cactus_dancingCactus'
+
+    o name
+        - A unique ASCII identifier for the mesh
+        - Stick to a-z,A-Z,0-9,-,_ and avoid whitespace
+
+    o xform
+        - A 4x4 transformation matrix 
+        - Specified in terms of 4 row vectors
+        - 4th row should be {0 0 0 1} 
+        - In other word, under multiplication assume 
+          points/vectors are in column matrix form
+
+    o mesh_data_file
+        - Name of file (with extension) containing the mesh data
+        - Mesh file format to be decribed below in .sm section
+        - If the mesh data is *NOT* in an external file,
+          this field should be NULL_STR
+
+    o mesh_data
+        - If mesh_data_file is NULL_STR, then the mesh data
+          is embedded in this label of the TEXBODY tag
+        - The exact same mesh description outlined below in
+          the .sm file format is simply placed between the {...} 
+          delimiters of this label
+
+* CREATE
+
+    Instruction causing a named TEXBODY to be instantiated into the world. 
+    This field should contain the name string of an associated TEXBODY.
+    All loaded TEXBODYs require an associated CREATE field to cause
+    the loaded objects to be placed into the world.
+
+* CHNG_CAM
+
+    Describes the paramters of the scene camera.  It is specified
+    using 4 3-vectors, followed by 3 scalars, as follows:
+
+	CHNG_CAM { {fx,fy,fz} {ax,ay,az} {ux,uy,uz} {cx cy cz} F P D }
+
+    Where:
+
+        (fx,fy,fz) - 'from_point' - the point location of the camera
+        (ax,ay,az) - 'at_point' - any point along the line of sight direction
+                                  (e.g. from_point + at_vector)
+        (ux,uy,uz) - 'up_point' - any point along the up direction 
+                                  (e.g. from_point + up_vector)
+        (cx,cy,cz) - 'center_point' - the point along the line of sight about
+                                      which the camera manipulator will rotate
+                                      This value only influences camera control
+                                      behavior, and doesn't impact the actual view
+                                      as described by the other vectors. It can
+                                      always be safely set the value of at_point
+        F - 'focal_length' - defines the 'field of view' of the camera in terms
+                             of a distance between the camera aperature and the
+                             film plane (of size 0.1). if the field of view is
+                             given as angle x, the F is given by the relation,
+                             tan(x/2)=(0.1/2)/F.  Note that the film dimension
+                             of 0.1 applies to the shorter window dimension
+                             when the aspect ratio is not 1. Thus, the focal
+                             length can correspond to a horizontal or vertical
+                             'field of view' angle depending upon the window
+                             aspect ratio.
+        P - 'perspective' - a 1 means perspective camera, a 0 mean orthographic
+        D - 'inter-ocular_distance' - eye separation for stereo viewing (not used)
+
+* CHNG_WIN
+
+    Describes the (x,y) position of the rendering window followed
+    by and the (w,h) of the rendering widow:
+ 
+        CHNG_WIN { x y w h }
+
+* CHNG_VIEW
+
+    Described changes to the 'view', such as background images, etc.
+    as well as view settings such as anti-aliasing settings, or
+    animation settings.
+
+    Always contains a single field called VIEW.
+
+    VIEW contains sub-fields:
+
+    o view_data_file - a file name (*WITHOUT* implicit .view extension) that
+                       contains additional fields of the VIEW object.  If this
+                       file is not found, the view settings will revert to defaults.
+                       However, if the scene is editted and saved, the named
+                       .view file will be created and used to store VIEW parameters.
+                       If this field is set to NULL_STR, then the other VIEW fields
+                       (e.g. lighting, etc.) will be written into this VIEW field,
+                       rather than an external file.  The .view file format will be
+                       described shortly.  It contains other fields that can
+                       appear in this field if no external file is used. Note that
+                       the view_animator field isn't embedded into the external file.
+
+    o view_animator - always contains a single field Animator
+
+    The Animator field contains parameters that describe an animated sequence of
+    .jot files.  If the Animator fields are not nulls (as described shortly), then
+    these fields describe the number of frames, and file names of .jot files used 
+    to store the frames of the animation.  
+
+    When an animated sequence of frames is defined, it accomplished using
+    a separate .jot file for each frame of the animation.  The sub-fields of the
+    Animator field describe the number of frames, and their root filename.
+    Each .jot file in the sequence is expected to provide updates to the camera,
+    updates to TEXBODY transforms, and updates to TEXBODY mesh vertex positions.
+    The base .jot file (which contains the CHNG_VIEW field that defines the animation)
+    defines the connectivity of the geometry of the TEXBODYs in the scene, but doesn't 
+    actually comprise a frame of the animation.   
+
+    The sub-field of the Animator are:
+
+        o fps - Describing the 'frame-per-second' of the animation.
+                Some dynamic effects in jot depend upon the actual frame-time,
+                so fps is necessary to assign an actual time stamp to each frame.
+
+        o start_frame - The frame number of the first frame.
+
+        o end_frame - The frame number of the last frame.
+ 
+        o name - The root-name of the .jot files of the aniation. The frames
+                 of the animation will take the form, NAMExxxxx.jot.
+   
+
+    In the example above, the CHNG_VIEW field is as follows:
+                     
+        CHNG_VIEW       {
+                VIEW    {
+                        view_animator   {
+                                Animator        {
+                                        fps     30
+                                        start_frame     1
+                                        end_frame       120
+                                                name    { cactus_export  }
+                                        } }
+                        view_data_file  { cactus_export }
+                        }
+                }
+
+    This excerpt belongs to Tutorial #4 which consists, in part, of the
+    following files:
+
+        cactus_export.jot                - The base .jot file describing the TEXBODYs and VIEW parameters
+                                           of the dancing cactus animation tutorial.
+
+        cactus_export.view               - The .view file referenced in cactus_export.jot. 
+                                           Defines the background, paper, etc.
+
+        cactus_dancingCactus.sm          - A mesh file referenced by a TEXTBODY in cactus_export.jot. 
+                                           Contains vertex, connectivity and shader info.
+
+        cactus_dancingCactus.npr         - A npr file reference in cactus_dancingCactus.sm. 
+                                           Contains shader info, such as line styles, toon shaders, etc.
+
+        cactus_export[00001].jot         - The first of 1 to 120 frames of the animation,
+        .                                  as defined by the Animator field in cactus_export.jot. 
+        .                                  Contains TEXBODY *updates* and camera updates.
+        cactus_export[00120].jot         - The last frame...
+
+        cactus_dancingCactus[00001].sm   - A mesh file referenced by a TEXBODY update in animation frame 
+        .                                  cactus_export[00001].jot. Contains updates to vertex positions
+        .                                  for the cactus_dancingCactus TEXBODY.
+        .
+        cactus_dancingCactus[00120].sm
+
+        <other files for hat and moustach>
+
+Each frame of the animation appears similar to the following excerpt:
+
+============== Begin 'cactus_export[00001].jot' =================
+
+#jot
+
+UPDATE_GEOM     { cactus_dancingCactus
+        TEXBODY {
+                name    cactus_dancingCactus
+                xform   {{1 0 0 0}{0 1 0 0}{0 0 1 0}{0 0 0 1}}
+                mesh_data_update_file   { cactus_dancingCactus[00001].sm }
+                }
+        }
+CHNG_CAM        { {-0.325183 4.99092 -13.2635}{-0.300943 4.84341 -12.2747}{-0.321568 5.97998 -13.116}{0.300943 4.84341 -12.2747}0.16 1 2.25
+        }
+
+=============== End 'cactus_export[00001].jot' ==================
+
+Frames of an animation are described by .jot files that provide updates
+to the TEXBODYs defined and instantiated in the base .jot file.  They also
+provide updates to the camera position.  
+
+    o CHNG_CAM - Updates camera as described previously.
+
+    o UPDATE_GEOM - A field contains the name of a TEXBODY created in the 
+                    base .jot file, followed by a TEXBODY update. The sub-fields
+                    of the TEXBODY update are as follows:
+
+      o name - The name of the TEXBODY being updated. Should match the name
+               in the first part of the UPDATE_GEOM field.
+
+      o xform - A new transform matrix for the TEXBODY are described above.
+
+      o mesh_data_update_file - A filename (with extension) containing updates to
+                                the vertex positions of the TEXBODYs mesh. If
+                                these updates are to appear in this file, rather
+                                than an external file, this field should be NULL_STR.
+                                The format .sm update files is described below.
+
+      o mesh_data_update - If mesh_data_update_file if NULL_STR, this field will be
+                           present, and contain the same contents as .sm update files
+                           described below.
+
+
+The base .jot file creates TEXBODYs which consist of meshes defined by their mesh_data_file
+(or mesh_data) field.  The mesh_data field contains an LMESH field whitch consists of sub-fields
+defining the vertices, faces, texture coordinates, crease edges, textures, etc. of the 
+TEXBODY mesh. The following example is referenced by the 'cactus_dancingCactus' TEXBODY
+mesh_data_file field in the base 'cactus_export.jot' file:
+
+============== Begin 'cactus_dancingCactus.sm' =================
+
+
+LMESH 	{ 
+	vertices 	{ {{-0.732362 4.04956 -0.885892 }{-0.690699 4.04648 -0.851902 } ... {0.337005 1.92161 0.520319 }}} 
+	faces 	{ {{1 0 2 }{2 0 3 } ... {1394 1395 1246 }}} 
+	patch 	{ 
+		Patch 	{ 
+			cur_tex 	0 
+			patchname 	patch-0 
+			texture 	{ 
+				NPRTexture 	{ 
+					npr_data_file 	{ cactus_dancingCactus } 
+					} } 
+			} } 
+	} 
+
+=============== End 'cactus_dancingCactus.sm' =================+
+
+A LMESH is decribed by the following fields:
+
+    o vertices - A series of 3-vectors which define the vertices of the mesh.
+                 Vertices are implicitly assigned indices beginning at 0.
+
+    o faces - A series of 3-vectors which each specify the indices of 3 vertices
+              comprising a trianglular face of the mesh. Vertices should be
+              listed in CCW order. Faces are implcity assigned 
+              indices beginning at 0.
+
+    o creases - Particular mesh edges can be tagged as 'creases', for instance,
+                when they comprise a sharp fold.  The edges at the top and bottom
+                of a finite, closed cylinder could be creases, say.  Shading, and
+                silhouette extraction is more accurate when sharp features are
+                appropriately tagged as creases. This is so because vertex normals 
+                are automatically derived by averaging the appropriate face normals, 
+                as constrained by crease edges.  Creases can be generate via the jot
+                gui using a dihedral angel threshold, or specified manually
+                during export from 3rd party modeling software. Creases edges
+                are defined as a sequence of 2-vectors consisting of the respective
+                2 vertex indices:
+
+			creases 	{ {{7850 7854 }{7854 7853 } ... {8175 8171 }}} 
+
+    o texcoords2 - Texture coordinates can be assigned to faces.  Each triangular face
+                   is assigned its own set of (u,v) coordinates.  Vertices which
+                   belong to more than one triangle with texture coordinates may
+                   have difference texture coordinates depending upon the face in question.
+                   This allows for a discontinuity in texture coordinates at seams, say.
+                   Texture coordinates are defined by a sequence of 4-vectors consisting of
+                   a face index, followed by 3 2-vectors which give the (u,v) coordinates
+                   of the 3 face vertices.  The 3 vertices are assigned texture coordinates
+                   in the same order as they are defined in the face field:
+
+                       texcoords2 	{ { {0 {1 0.03023 }{0.984462 0.015114 }{1 0.015114 }} ... } }
+          
+    o patch - A patch is a collection of faces to which shaders are assigned.
+              If is possible assign the faces of mesh to more than one patch
+              so that different shaders can be assigned to the different parts.
+              For example, the knob faces of a door mesh might be assigned to
+              one patch and the flat door faces to another.  Each patch could be
+              stylized using appropriate line styles and shaders, etc.  
+
+              *NOTE* - At present, multiple patches are buggy and not recommended.
+              This will be fixed soon.  In the mean time stick to single patches for
+              meshes.
+
+              If a patch does not contain a 'faces' field, it is assumed to contain
+              all the faces of the mesh. In the example above, there is a single 'patch'
+              containing the following fields:
+
+                  o Patch - The 'patch' field of an LMESH contains a single Patch field.
+                            This field contains:
+
+                  o faces - [not in example] A list of indices of faces belonging to the mesh.  
+                            This field is absent when there is a single patch, as
+                            it is assumed to contain all faces.  Example:
+
+                                 faces	{ {0 1 2 ... 123} }
+
+                  o cur_tex - The index of the current texture (i.e. shader) applied to
+                              the faces of the patch.  This index applies to the sequence
+                              of textures defined in the 'texture' fields of the 'Patch',
+                              described below.  In jot, all npr effects are handled by the
+                              'NPRTexture' shader, which will generally be listed first (and alone).
+                              Thus the cur_tex is generally 0.
+
+                  o patchname - A unique ASCII name for the patch. Avoid whitespace, and
+                                stick to alpanumerics.
+
+                  o texture - A shader assigned to the patch.  There may be more that one 'texture'
+                              field, so they are given indices starting at 0. 'cur_tex' field
+                              references one of these 'textures' as the active texture.  
+                              This field contains a texture (i.e. shader) object.  In jot, all npr effects are
+                              goverend by the master NPRTexture shader. This shader contains
+                              a single field:
+
+                     o npr_data_file - The file name (*WITHOUT* implicit .npr extension) that
+                                       contains the remaining sub-fields of the NPRTexture shader
+                                       that describe the basecoats, line styles, hatching, etc.
+                                       of the master jot npr shader. If the sub-fields are to
+                                       appear here, and not in an external file, this field
+                                       should be NULL_STR.  If this file is defined, but non-existent,
+                                       the NPRTexture will take on defaults, and will be created
+                                       and written to when the scene is saved within jot.
+
+                     o <other fields> - If npr_data_file is NULL_STR, the remaining sub-fields normally
+                                        exported to .npr files are included within in this NPRTexture field.
+                                        
+
+The numbered .jot files that define frames of animation contain UPDATE_GEOM
+fields which contain TEXBODY updates that provide updates to mesh vertex positions.
+The 'mesh_data_update_file' field contains a filename for a .sm file 
+('or a mesh_data_update' field) which  provides updates to the vertex positions 
+for meshes defined in the base .jot file and the associated base .sm files. 
+The patches, textures, creases, faces cannot be altered.  Only vertex positions 
+can change. The following is an excerpt from the mesh update file for the
+'cactus_dancingCactus' TEXBODY for frame 1 (of the 120 frames).
+
+============== Begin 'cactus_dancingCactus[00001].sm' =================
+
+
+LMESH 	{ 
+	vertices 	{ {{-0.732362 4.04956 -0.885892 }{-0.690699 4.04648 -0.851902 } ... {0.337005 1.92161 0.520319 }}} 
+	} 
+
+=============== End 'cactus_dancingCactus.sm' =================+
+
+The LMESH update can contain only 1 field:
+
+    o vertices - A series of 3-vectors which define the vertices of the mesh.
+                 Vertices are implicitly assigned indices beginning at 0.
+                 The *SAME* number of vertices (in the same order) must be 
+                 defined here as in the base .sm file.
+
+
+Two other file formats remain to be described:
+
+The CHNG_VIEW field in the base .jot file can export the data field of the VIEW
+object to an external .view file.  This file format is not described at this time,
+but it should be relativelty self-evident. Many of the settings in the jot gui
+brough up by pressing 'v' comprise the field in the .view file.
+
+The NPRTexture shader contains MANY field which describe all the information
+necessary the describe all the npr effects used to stylize a patch of a mesh.
+These field are exported in .npr files, and references in the respective .sm
+base files.  This file format is not described, as it's pretty nasty, and 
+won't generally require manual editting, anyway...
+
+Other misc. notes:
+
+When exported animations, the basic idea is to produce:
+
+-base .jot file (e.g. cactus_export.jot) the instantiates all the meshes, and defines animation parameters
+-associated base .sm files (e.g. cactus_dancingCactus.sm) that define the mesh connectivity
+-numbered .jot files for animated frames (e.g. cactus_export[00001].jot) containing TEXBODY updates
+-associated numbered .sm files (e.g. cactus_dancingCactus[00001].sm) that define vertex position updates
+
+Then load the base .jot file in jot, annotate the meshes are desired, and save the result.
+Saving will case the following to happen:
+
+-the base .jot is saved to out.jot and relects changes to the default TEXBODY transforms and camera position
+ shown at load time (but doesn't effect such parameters in the numbreed .jot frames of the animation).
+-the base .sm files are saved to their original filenames, reflecting any changes to the meshes
+ (e.g. creases were added by appliting a dihedral angle threshold) 
+-the view parameters are saved to the .view file references in the base .jot file. This
+ file is created if it's missing.
+-the npr annotations of the NPRTextures are saved to the .npr files. these files are
+ created if missing.
+
+If it is necessary to tweak the animation in a 3rd party softweare package and re-export it,
+if object and filenames don't change, the .view file and .npr files can be recylced to avoid
+having to re-annotate the scene from scratch.
+
+Enjoy...
+
+--Rob Kalnins <rdk@cs.princeton.edu>
+
+(Note, this document is temporary, pending a cleaner chapter in the manual...)
