@@ -35,6 +35,7 @@ class ExportJot(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
     def exportMesh(self, obj):
+        # TEXBODY
         # Add a mesh to the file.
         self.file.write('\nTEXBODY {\n')
         self.file.write('  name  %s\n' % obj.name)
@@ -52,10 +53,10 @@ class ExportJot(bpy.types.Operator, ExportHelper):
         self.file.write('      vertices {{ ')
         for vert in obj.data.vertices:
             self.file.write('{ %s %s %s }' % ( vert.co.x, vert.co.y, vert.co.z ) )
-        self.file.write('\n  }}\n')
+        self.file.write('  }}\n')
         # Triangulate and export faces
         obj.data.update(calc_tessface=True)
-        self.file.write('      faces {{')
+        self.file.write('      faces {{ ')
         for tface in obj.data.tessfaces:
             vert_index = tface.vertices
             if len(vert_index) == 3:
@@ -63,36 +64,67 @@ class ExportJot(bpy.types.Operator, ExportHelper):
             else:
                 self.file.write('{ %s %s %s }' % ( vert_index[0], vert_index[1], vert_index[2] ) )
                 self.file.write('{ %s %s %s }' % ( vert_index[0], vert_index[2], vert_index[3] ) )
-        self.file.write('\n  }}\n')
-        # TODO! Export hard edges (creases in jot speak).
-        self.file.write('       creases {{ {} }}\n')
+        self.file.write('  }}\n')
+        # Export creased edges.
+        self.file.write('       creases {{ ')
+        has_creases = False
+        for edge in obj.data.edges:
+            if edge.crease > 0.0:
+                self.file.write('{ %s %s }' % ( edge.vertices[0], edge.vertices[1] ) )
+                has_creases = True
+        if not has_creases:
+            self.file.write(' {} ')
+        self.file.write('  }}\n')
         # Export UV's.
-        self.file.write('       texcoords2 {{ ')
-        #face_count = 0
-        m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-        face_count = 0
-        for tex_face in m.tessface_uv_textures.active.data:
-            uvs = tex_face.uv
-            if len(uvs) == 3:
-                self.file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[1][0], uvs[1][1], uvs[2][0], uvs[2][1] ) )
-                face_count += 1
-            else:
-                self.file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[1][0], uvs[1][1], uvs[2][0], uvs[2][1] ) )
-                face_count += 1
-                self.file.write('{ %s { %s %s }{ %s %s }{ %s %s }' % ( face_count, uvs[0][0], uvs[0][1], uvs[2][0], uvs[2][1], uvs[3][0], uvs[3][1] ) )
-                face_count += 1
+        try:
+            self.file.write('       texcoords2 {{ ')
+            m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+            face_count = 0
+            for tex_face in m.tessface_uv_textures.active.data:
+                uvs = tex_face.uv
+                if len(uvs) == 3:
+                    self.file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[1][0], uvs[1][1], uvs[2][0], uvs[2][1] ) )
+                    face_count += 1
+                else:
+                    self.file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[1][0], uvs[1][1], uvs[2][0], uvs[2][1] ) )
+                    face_count += 1
+                    self.file.write('{ %s { %s %s }{ %s %s }{ %s %s }' % ( face_count, uvs[0][0], uvs[0][1], uvs[2][0], uvs[2][1], uvs[3][0], uvs[3][1] ) )
+                    face_count += 1
             self.file.write('}\n')
-        self.file.write('}  }}\n')
-
-
-#m = bpy.context.active_object.to_mesh(bpy.context.scene, True, 'PREVIEW')
-#uv1 = m.tessface_uv_textures.active.data[0].uv1
-
+        except:
+            # Object lacks UV's. 
+            self.file.write('{} ')
+        self.file.write(' }}\n')
         self.file.write('}\n')
-
         self.file.write('CREATE { %s }' % obj.name)
+        # TEXBODY END
 
-
+        # CAMERA & VIEW
+        # Export Camera
+        # Todo! Aim at location, up vector and field of view.
+        cam = bpy.data.scenes[0].camera
+        self.file.write('\nCHNG_CAM {\n')
+        self.file.write('{ %s %s %s }' % ( cam.location[0], cam.location[1], cam.location[2] ) )
+        self.file.write('{ 0.0 0.0 0.0 }')
+        self.file.write('{ %s %s %s }' % ( cam.location[0], cam.location[1], (cam.location[2] + 1) ) )
+        self.file.write('{ 0.0 0.0 0.0 }')
+        self.file.write(' 0.2 1 2.25 }\n')
+        # Set Windows size TODO! Don't know if this is needed.
+        self.file.write('CHNG_WIN { 34 480 580 }\n')
+        # Set the View TODO! Don't know if this is needed, and insert correct data.
+        self.file.write('CHNG_VIEW {\n')
+        self.file.write('  VIEW {\n')
+        self.file.write('    view_animator {\n')
+        self.file.write('      Animator {\n')
+        self.file.write('        fps            30\n')
+        self.file.write('        start_frame     1\n')
+        self.file.write('        end_frame     120\n')
+        self.file.write('        name { untitled } \n')
+        self.file.write('      }\n')
+        self.file.write('    }\n')
+        self.file.write('    view_data_file { untitled }\n')
+        self.file.write('  }\n')
+        self.file.write('}\n')
                 
 def menu_func(self, context):
     self.layout.operator(ExportJot.bl_idname, text="Jot Stylized Renderer (.jot)");
