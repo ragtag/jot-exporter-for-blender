@@ -89,7 +89,10 @@ class BuildJot():
         # Write the TEXBODY for obj to file.
         self.file.write('\nTEXBODY {\n')
         self.file.write('  name  %s\n' % obj.name)
-        self.file.write('  xform {{1 0 0 0}{0 1 0 0}{0 0 1 0}{0 0 0 1}}\n')
+        self.file.write('  xform {{%s %s %s %s}{%s %s %s %s}{%s %s %s %s}{0 0 0 1}}\n' % ( \
+                obj.matrix_local[0][0], obj.matrix_local[0][1], obj.matrix_local[0][2], obj.matrix_local[0][3], \
+                obj.matrix_local[1][0], obj.matrix_local[1][1], obj.matrix_local[1][2], obj.matrix_local[1][3], \
+                obj.matrix_local[2][0], obj.matrix_local[2][1], obj.matrix_local[2][2], obj.matrix_local[2][3] ))
         self.file.write('  xfdef  { DEFINER\n')
         self.file.write('    DEFINER {\n')
         self.file.write('      out_mask  1\n')

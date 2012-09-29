@@ -77,8 +77,7 @@ if __name__ == "__main__":
 
 
 # TODO!
-# - Structure the code properly, before it goes spaghetti.
-# - Transform is being ignored on models (maybe it only supports cv transforms...but there is a matrix)???
+# - Test if xform matrix is working correctly.
 # - Add support for animation.
 # - Test with a riggeed and animated character.
 # - Add support for exporting result of modifiers.
