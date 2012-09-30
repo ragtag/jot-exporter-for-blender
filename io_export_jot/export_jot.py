@@ -29,9 +29,12 @@ class BuildJot():
         if not file:
             file = self.file
         file.write('      vertices {{ ')
-        for vert in obj.data.vertices:
+        m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+        for vert in m.vertices:
             file.write('{ %s %s %s }' % ( vert.co.x, vert.co.y, vert.co.z ) )
         file.write('  }}\n')
+        m.user_clear()
+        bpy.data.meshes.remove(m)
 
 
     def faces(self, obj, file=False):
@@ -39,8 +42,8 @@ class BuildJot():
         if not file:
             file = self.file
         file.write('      faces {{ ')
-        obj.data.update(calc_tessface=True)
-        for tface in obj.data.tessfaces:
+        m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+        for tface in m.tessfaces:
             vert_index = tface.vertices
             if len(vert_index) == 3:
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[1], vert_index[2] ) )
@@ -48,7 +51,8 @@ class BuildJot():
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[1], vert_index[2] ) )
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[2], vert_index[3] ) )
         file.write('  }}\n')
-
+        m.user_clear()
+        bpy.data.meshes.remove(m)
 
     def creases(self, obj, file=False):
         # Write creased edges to file.
@@ -59,7 +63,6 @@ class BuildJot():
             if edge.crease > 0.0:
                 file.write('{ %s %s }' % ( edge.vertices[0], edge.vertices[1] ) )
         file.write('  }}\n')
-
 
     def uvs(self, obj, file=False):
         # Write UV's to file.
@@ -81,6 +84,8 @@ class BuildJot():
                     file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[2][0], uvs[2][1], uvs[3][0], uvs[3][1] ) )
                     face_count += 1
             file.write(' }}\n')
+            m.user_clear()
+            bpy.data.meshes.remove(m)
         except:
             file.write(' }}\n')
 
@@ -102,6 +107,7 @@ class BuildJot():
         self.file.write('  color {1 1 1}\n')
         self.file.write('  mesh_data {\n')
         self.file.write('    LMESH {\n')
+        obj.data.update(calc_tessface=True)
         # Vertices
         self.vertices(obj)
         # Faces

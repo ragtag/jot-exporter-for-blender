@@ -77,11 +77,12 @@ if __name__ == "__main__":
 
 
 # TODO!
-# - Test if xform matrix is working correctly.
 # - Add support for animation.
 # - Test with a riggeed and animated character.
-# - Add support for exporting result of modifiers.
-# - Fix the camera (may be correct, but model transforms are wrong)?
+# - Fix the camera.
 # - Add support for exporting model, while keeping Jot annotation.
 # - Learn how to use Jot. :)
 # - Compile the damn thing on 64bit Linux. :P
+
+# LIMITATIONS!
+# - Exporting crease info will not work on multires or subdiv models. It will only export the crease info for the edge in the basemesh. This is not a limit of the exporter, but of how creases and subdivs are handled. The workaround is to Apply subdiv modifiers, and add creases to the subdivided mesh.
