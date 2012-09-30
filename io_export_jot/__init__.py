@@ -14,8 +14,8 @@ bl_info = {
 
 if "bpy" in locals():
     import imp
-    if "io_export_jot" in locals():
-        imp.reload(io_export_jot)
+    if "export_jot" in locals():
+        imp.reload(export_jot)
 
 import bpy
 from bpy.types import Operator
@@ -77,9 +77,10 @@ if __name__ == "__main__":
 
 
 # TODO!
+# - Fix the camera at_point and focal length.
+# - Figure out if framing can be set.
 # - Add support for animation.
 # - Test with a riggeed and animated character.
-# - Fix the camera.
 # - Add support for exporting model, while keeping Jot annotation.
 # - Learn how to use Jot. :)
 # - Compile the damn thing on 64bit Linux. :P

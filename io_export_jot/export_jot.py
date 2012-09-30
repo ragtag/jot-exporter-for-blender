@@ -1,6 +1,7 @@
 #!BPY
 
 import bpy
+from mathutils import Vector, Euler
 
 class BuildJot():
     # Build a jot file.
@@ -20,6 +21,8 @@ class BuildJot():
         for obj in bpy.context.scene.objects:
             if obj.type == 'MESH':
                 self.texbody(obj)
+        # Export the camera settings.
+        self.camera()
         # Close the file and finish.
         self.file.close()
 
@@ -124,12 +127,20 @@ class BuildJot():
 
     def camera(self):
         # Write the camera to file. TODO! Does not work correctly.
-        cam = bpy.data.scenes[0].camera
+        cam = bpy.context.scene.camera
         self.file.write('\nCHNG_CAM {\n')
+        # from_point
         self.file.write('{ %s %s %s }' % ( cam.location[0], cam.location[1], cam.location[2] ) )
+        # at_point
+        # x = cos(yaw)*cos(pitch)
+        # y = sin(yaw)*cos(pitch)
+        # z = sin(pitch)
         self.file.write('{ 0.0 0.0 0.0 }')
+        # up_point
         self.file.write('{ %s %s %s }' % ( cam.location[0], cam.location[1], (cam.location[2] + 1) ) )
+        # center_point (that the camrea will rotate about.
         self.file.write('{ 0.0 0.0 0.0 }')
+        # focal length, perspective, inter-ocular distance (not used)
         self.file.write(' 0.2 1 2.25 }\n')
         
                 
