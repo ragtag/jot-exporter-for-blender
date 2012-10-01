@@ -58,6 +58,11 @@ class ExportJot(Operator, ExportHelper):
         builder = export_jot.BuildJot(context, self.filepath, self.anim, self.start, self.end)
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        # Extend ExportHelper invoke function to support dynamic default values (thanks to CoDEmanX)
+        self.start = context.scene.frame_start
+        self.end = context.scene.frame_end
+        return super().invoke(context, event)
 
 
 def menu_func(self, context):
