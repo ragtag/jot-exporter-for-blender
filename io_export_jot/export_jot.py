@@ -2,6 +2,7 @@
 
 import bpy
 from mathutils import Vector, Euler
+from math import tan, radians
 
 class BuildJot():
     # Build a jot file.
@@ -23,6 +24,8 @@ class BuildJot():
                 self.texbody(obj)
         # Export the camera settings.
         self.camera()
+        # Set window and view size
+        self.window()
         # Close the file and finish.
         self.file.close()
 
@@ -130,21 +133,32 @@ class BuildJot():
         cam = bpy.context.scene.camera
         self.file.write('\nCHNG_CAM {\n')
         # from_point
-        self.file.write('{ %s %s %s }' % ( cam.location[0], cam.location[1], cam.location[2] ) )
-        # at_point
-        # x = cos(yaw)*cos(pitch)
-        # y = sin(yaw)*cos(pitch)
-        # z = sin(pitch)
-        self.file.write('{ 0.0 0.0 0.0 }')
+        from_point = cam.matrix_world.col[3]
+        self.file.write('{ %s %s %s }' % ( from_point.x, from_point.y, from_point.z ) )
+       # at_point
+        at_point = cam.matrix_world.col[2]
+        at_point = at_point * -1
+        at_point = at_point + from_point
+        self.file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # up_point
-        self.file.write('{ %s %s %s }' % ( cam.location[0], cam.location[1], (cam.location[2] + 1) ) )
-        # center_point (that the camrea will rotate about.
-        self.file.write('{ 0.0 0.0 0.0 }')
+        up_point = cam.matrix_world.col[1]
+        up_point = up_point + from_point
+        self.file.write('{ %s %s %s }' % ( up_point.x, up_point.y, up_point.z ) )
+        # center_point (that the camera will rotate about).
+        self.file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
+        # focal length ( 0.1/2 / tan(x/2) = F ) 
+        # TODO! Incorrect formula.
+        focal_length = 0.1/2 / tan(radians(cam.data.angle)/2)
         # focal length, perspective, inter-ocular distance (not used)
-        self.file.write(' 0.2 1 2.25 }\n')
+        self.file.write(' %s 1 2.25 }\n' % ( 0.2 ) )
         
                 
-
+    def window(self):
+        # Set the window size, based on the resolution in blender.
+        scene = bpy.context.scene
+        width  = int(scene.render.resolution_x * scene.render.resolution_percentage / 100)
+        height = int(scene.render.resolution_y * scene.render.resolution_percentage / 100)
+        self.file.write('CHNG_WIN { 32 32 %s %s }\n' % ( width, height ) )
 
     def unused(self):
         pass

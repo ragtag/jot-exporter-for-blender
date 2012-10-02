@@ -82,8 +82,7 @@ if __name__ == "__main__":
 
 
 # TODO!
-# - Fix the camera at_point and focal length.
-# - Figure out if framing can be set.
+# - Fix the camera focal length.
 # - Add support for animation.
 # - Test with a riggeed and animated character.
 # - Add support for exporting model, while keeping Jot annotation.
