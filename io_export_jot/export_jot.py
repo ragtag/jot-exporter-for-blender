@@ -147,8 +147,8 @@ class BuildJot():
         # center_point (that the camera will rotate about).
         self.file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # focal length ( 0.1/2 / tan(x/2) = F ) 
-        # TODO! Incorrect formula.
-        focal_length = 0.1/2 / tan(radians(cam.data.angle)/2)
+        # TODO! Blender uses width to calculate angle of view, while jot uses the shortest.
+        focal_length = 0.1/2 / tan(cam.data.angle/2)
         # focal length, perspective, inter-ocular distance (not used)
         self.file.write(' %s 1 2.25 }\n' % ( 0.2 ) )
         
