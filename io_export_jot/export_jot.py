@@ -147,11 +147,18 @@ class BuildJot():
         # center_point (that the camera will rotate about).
         self.file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # focal length ( 0.1/2 / tan(x/2) = F ) 
-        # TODO! Blender uses width to calculate angle of view, while jot uses the shortest.
+        scene = bpy.context.scene
         focal_length = 0.1/2 / tan(cam.data.angle/2)
-        # focal length, perspective, inter-ocular distance (not used)
-        self.file.write(' %s 1 2.25 }\n' % ( 0.2 ) )
-        
+        # Blender uses width to calculate angle of view, while jot uses the shortes of width and height.
+        aspect = scene.render.resolution_x / scene.render.resolution_y
+        if aspect > 1:
+            focal_length = focal_length * ( scene.render.resolution_x / scene.render.resolution_y )
+            self.file.write(' %s 1 2.25 }\n' % ( focal_length ) )
+        else:
+            focal_length = focal_length * ( scene.render.resolution_y / scene.render.resolution_x )
+            self.file.write(' %s 1 2.25 }\n' % ( focal_length ) )
+        # The second to last value is perspective/orthographic. The exporter doesn't support ortographics cameras yet.
+        # The last value is interocular distance for 3D cameras, which is not used by jot.
                 
     def window(self):
         # Set the window size, based on the resolution in blender.
