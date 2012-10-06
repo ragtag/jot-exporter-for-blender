@@ -1,6 +1,7 @@
 #!BPY
 
 import bpy
+import os.path
 from mathutils import Vector, Euler
 from math import tan, radians
 
@@ -14,6 +15,8 @@ class BuildJot():
         self.start = start
         self.end = end
         self.filepath = filepath
+        self.basepath = os.path.splitext(filepath)[0]
+        self.basename = os.path.splitext(os.path.basename(filepath))[0]
         # Open file for writing.
         self.file = open(self.filepath, 'w')
         self.file.write('#jot\n')
@@ -21,19 +24,31 @@ class BuildJot():
         bpy.ops.object.mode_set(mode='OBJECT');
         for obj in bpy.context.scene.objects:
             if obj.type == 'MESH':
-                self.texbody(obj)
+                self.texbody(obj, self.file, self.filepath)
         # Export the camera settings.
-        self.camera()
+        self.camera(self.file)
         # Set window and view size
         self.window()
+        # Create the view settings.
+        self.view()
         # Close the file and finish.
         self.file.close()
+        # Export animation data
+        current = bpy.context.scene.frame_current
+        if self.anim:
+            for i in range(self.start, self.end):
+                bpy.context.scene.frame_set(i)
+                filepath = ('%s[%05d].jot' % (self.basepath, i) )
+                file = open(filepath, 'w')
+                file.write('#jot\n')
+                for obj in bpy.context.scene.objects:
+                    if obj.type == 'MESH':
+                        self.texbody(obj, file, filepath, True)
+                self.camera(file)
+                file.close()
 
-
-    def vertices(self, obj, file=False):
+    def vertices(self, obj, file):
         # Write vertices to file.
-        if not file:
-            file = self.file
         file.write('      vertices {{ ')
         m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
         for vert in m.vertices:
@@ -43,10 +58,8 @@ class BuildJot():
         bpy.data.meshes.remove(m)
 
 
-    def faces(self, obj, file=False):
+    def faces(self, obj, file):
         # Triangulate faces and write to file.
-        if not file:
-            file = self.file
         file.write('      faces {{ ')
         m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
         for tface in m.tessfaces:
@@ -60,20 +73,16 @@ class BuildJot():
         m.user_clear()
         bpy.data.meshes.remove(m)
 
-    def creases(self, obj, file=False):
+    def creases(self, obj, file):
         # Write creased edges to file.
-        if not file:
-            file = self.file
         file.write('       creases {{ ')
         for edge in obj.data.edges:
             if edge.crease > 0.0:
                 file.write('{ %s %s }' % ( edge.vertices[0], edge.vertices[1] ) )
         file.write('  }}\n')
 
-    def uvs(self, obj, file=False):
+    def uvs(self, obj, file):
         # Write UV's to file.
-        if not file:
-            file = self.file
         try:
             file.write('       texcoords2 {{ ')
             m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
@@ -96,56 +105,80 @@ class BuildJot():
             file.write(' }}\n')
 
 
-    def texbody(self, obj):
+    def texbody(self, obj, file, filepath, update=False):
         # Write the TEXBODY for obj to file.
-        self.file.write('\nTEXBODY {\n')
-        self.file.write('  name  %s\n' % obj.name)
-        self.file.write('  xform {{%s %s %s %s}{%s %s %s %s}{%s %s %s %s}{0 0 0 1}}\n' % ( \
+        if update:
+            file.write('\nUPDATE_GEOM { %s' % obj.name)
+        file.write('\nTEXBODY {\n')
+        file.write('  name  %s\n' % obj.name)
+        file.write('  xform {{%s %s %s %s}{%s %s %s %s}{%s %s %s %s}{0 0 0 1}}\n' % ( \
                 obj.matrix_local[0][0], obj.matrix_local[0][1], obj.matrix_local[0][2], obj.matrix_local[0][3], \
                 obj.matrix_local[1][0], obj.matrix_local[1][1], obj.matrix_local[1][2], obj.matrix_local[1][3], \
                 obj.matrix_local[2][0], obj.matrix_local[2][1], obj.matrix_local[2][2], obj.matrix_local[2][3] ))
-        self.file.write('  xfdef  { DEFINER\n')
-        self.file.write('    DEFINER {\n')
-        self.file.write('      out_mask  1\n')
-        self.file.write('      inputs    { }\n')
-        self.file.write('    }\n')
-        self.file.write('  }\n')
-        self.file.write('  color {1 1 1}\n')
-        self.file.write('  mesh_data {\n')
-        self.file.write('    LMESH {\n')
-        obj.data.update(calc_tessface=True)
-        # Vertices
-        self.vertices(obj)
-        # Faces
-        self.faces(obj)
-        # Creases
-        self.creases(obj)
-        # UV's
-        self.uvs(obj)
-        # Closing LMESH, mesh_data and TEXBODY and creating it.
-        self.file.write('    }\n')
-        self.file.write('  }\n')
-        self.file.write('}\n')
-        self.file.write('CREATE { %s }\n\n' % obj.name)
+        file.write('  xfdef  { DEFINER\n')
+        file.write('    DEFINER {\n')
+        file.write('      out_mask  1\n')
+        file.write('      inputs    { }\n')
+        file.write('    }\n')
+        file.write('  }\n')
+        file.write('  color {1 1 1}\n')
+        # TODO! Don't know if this is needed for animation.
+        if self.anim:
+            smfilename = ( '%s_%s.sm' % ( self.basename, obj.name ) )
+            if update:
+                print(bpy.context.scene.frame_current)
+                smfilename = ( '%s_%s[%05d].sm' % ( self.basename, obj.name, bpy.context.scene.frame_current ) )
+            smfilepath = os.path.join(os.path.split(filepath)[0], smfilename)
+            print(smfilepath)
+            file.write('  mesh_data_file { %s }' % smfilename)
+            smfile = open(smfilepath, 'w')
+            smfile.write('    LMESH {\n')
+            self.vertices(obj, smfile)
+            self.faces(obj, smfile)
+            self.creases(obj, smfile)
+            self.uvs(obj, smfile)
+            smfile.write('    }\n')
+            smfile.write('  }\n')
+            smfile.close()
+        else:
+            file.write('  mesh_data {\n')
+            file.write('    LMESH {\n')
+            obj.data.update(calc_tessface=True)
+            # Vertices
+            self.vertices(obj, file)
+            # Faces
+            self.faces(obj, file)
+            # Creases
+            self.creases(obj, file)
+            # UV's
+            self.uvs(obj, file)
+            # Closing LMESH, mesh_data and TEXBODY and creating it.
+            file.write('    }\n')
+            file.write('  }\n')
+        file.write('}\n')
+        if update:
+            file.write('}\n')
+        else:
+            file.write('CREATE { %s }\n\n' % obj.name)
 
-    def camera(self):
+    def camera(self, file):
         # Write the camera to file. TODO! Does not work correctly.
         cam = bpy.context.scene.camera
-        self.file.write('\nCHNG_CAM {\n')
+        file.write('\nCHNG_CAM {\n')
         # from_point
         from_point = cam.matrix_world.col[3]
-        self.file.write('{ %s %s %s }' % ( from_point.x, from_point.y, from_point.z ) )
+        file.write('{ %s %s %s }' % ( from_point.x, from_point.y, from_point.z ) )
        # at_point
         at_point = cam.matrix_world.col[2]
         at_point = at_point * -1
         at_point = at_point + from_point
-        self.file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
+        file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # up_point
         up_point = cam.matrix_world.col[1]
         up_point = up_point + from_point
-        self.file.write('{ %s %s %s }' % ( up_point.x, up_point.y, up_point.z ) )
+        file.write('{ %s %s %s }' % ( up_point.x, up_point.y, up_point.z ) )
         # center_point (that the camera will rotate about).
-        self.file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
+        file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # focal length ( 0.1/2 / tan(x/2) = F ) 
         scene = bpy.context.scene
         focal_length = 0.1/2 / tan(cam.data.angle/2)
@@ -153,10 +186,10 @@ class BuildJot():
         aspect = scene.render.resolution_x / scene.render.resolution_y
         if aspect > 1:
             focal_length = focal_length * ( scene.render.resolution_x / scene.render.resolution_y )
-            self.file.write(' %s 1 2.25 }\n' % ( focal_length ) )
+            file.write(' %s 1 2.25 }\n' % ( focal_length ) )
         else:
             focal_length = focal_length * ( scene.render.resolution_y / scene.render.resolution_x )
-            self.file.write(' %s 1 2.25 }\n' % ( focal_length ) )
+            file.write(' %s 1 2.25 }\n' % ( focal_length ) )
         # The second to last value is perspective/orthographic. The exporter doesn't support ortographics cameras yet.
         # The last value is interocular distance for 3D cameras, which is not used by jot.
                 
@@ -166,6 +199,31 @@ class BuildJot():
         width  = int(scene.render.resolution_x * scene.render.resolution_percentage / 100)
         height = int(scene.render.resolution_y * scene.render.resolution_percentage / 100)
         self.file.write('CHNG_WIN { 32 32 %s %s }\n' % ( width, height ) )
+
+    def view(self):
+        # Defines the view, such as frame range and background.
+        self.file.write('CHNG_VIEW {\n')
+        self.file.write('  VIEW {\n')
+        self.file.write('    view_animator {\n')
+        self.file.write('      Animator {\n')
+        if self.anim:
+            self.file.write('        fps            %s\n' % bpy.context.scene.render.fps)
+            self.file.write('        start_frame    %s\n' % self.start)
+            self.file.write('        end_frame      %s\n' % self.end)
+            self.file.write('        name { %s } \n' % self.basename)
+        else:
+            self.file.write('        fps            -1\n')
+            self.file.write('        start_frame    -1\n')
+            self.file.write('        end_frame      -1\n')
+            self.file.write('        name { NULL_STR } \n')
+        self.file.write('      }\n')
+        self.file.write('    }\n')
+        # TODO! This causes view data to be written to the .jot file, and not a .view file. Don't know if this is important.
+        self.file.write('    view_data_file { NULL_STR }\n')
+        self.file.write('  }\n')
+        self.file.write('}\n')
+            
+
 
     def unused(self):
         pass

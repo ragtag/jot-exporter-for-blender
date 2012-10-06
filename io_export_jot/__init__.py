@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
 
 # TODO!
-# - Add support for animation.
+# - Add patch data (fake or real). Jot crasehes when playing back animation with outlines turned on because it lacks patch data.
 # - Test with a riggeed and animated character.
 # - Add support for exporting model, while keeping Jot annotation.
 # - Learn how to use Jot. :)
