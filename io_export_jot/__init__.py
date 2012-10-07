@@ -82,8 +82,8 @@ if __name__ == "__main__":
 
 
 # TODO!
-# - Add patch data (fake or real). Jot crasehes when playing back animation with outlines turned on because it lacks patch data.
-# - Test with a riggeed and animated character.
+# - Add patch data (fake or real). Jot crasehes when playing back animation with outlines turned on because it lacks patch data. Cactus seems to work, though I've crashed it once. Maybe it has to do with the lack of any annotation info when loaded.
+# - Test with a rigged and animated character.
 # - Add support for exporting model, while keeping Jot annotation.
 # - Learn how to use Jot. :)
 # - Compile the damn thing on 64bit Linux. :P
