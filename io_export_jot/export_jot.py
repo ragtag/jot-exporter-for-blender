@@ -134,9 +134,10 @@ class BuildJot():
             smfile = open(smfilepath, 'w')
             smfile.write('    LMESH {\n')
             self.vertices(obj, smfile)
-            self.faces(obj, smfile)
-            self.creases(obj, smfile)
-            self.uvs(obj, smfile)
+            if not update:
+                self.faces(obj, smfile)
+                self.creases(obj, smfile)
+                self.uvs(obj, smfile)
             smfile.write('    }\n')
             smfile.write('  }\n')
             smfile.close()
