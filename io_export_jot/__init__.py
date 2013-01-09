@@ -83,6 +83,7 @@ if __name__ == "__main__":
 
 # TODO!
 # - Add patch data (fake or real). Jot crasehes when playing back animation with outlines turned on because it lacks patch data. Cactus seems to work, though I've crashed it once. Maybe it has to do with the lack of any annotation info when loaded.
+# - End frame is off. Frame 1 to 2, gives only one frame.
 # -- creases and more data written to the bla[##].sm files, that shouldn't be.
 # - Test with a rigged and animated character.
 # - Add support for exporting model, while keeping Jot annotation.
