@@ -130,7 +130,10 @@ class BuildJot():
                 smfilename = ( '%s_%s[%05d].sm' % ( self.basename, obj.name, bpy.context.scene.frame_current ) )
             smfilepath = os.path.join(os.path.split(filepath)[0], smfilename)
             print(smfilepath)
-            file.write('  mesh_data_file { %s }' % smfilename)
+            if update:
+                file.write('  mesh_data_update_file { %s }' % smfilename)
+            else:
+                file.write('  mesh_data_file { %s }' % smfilename)                
             smfile = open(smfilepath, 'w')
             smfile.write('    LMESH {\n')
             self.vertices(obj, smfile)
@@ -139,7 +142,7 @@ class BuildJot():
                 self.creases(obj, smfile)
                 self.uvs(obj, smfile)
             smfile.write('    }\n')
-            smfile.write('  }\n')
+            #smfile.write('  }\n')
             smfile.close()
         else:
             file.write('  mesh_data {\n')
