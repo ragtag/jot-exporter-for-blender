@@ -36,7 +36,7 @@ class BuildJot():
         # Export animation data
         current = bpy.context.scene.frame_current
         if self.anim:
-            for i in range(self.start, self.end):
+            for i in range(self.start, self.end+1):
                 bpy.context.scene.frame_set(i)
                 filepath = ('%s[%05d].jot' % (self.basepath, i) )
                 file = open(filepath, 'w')
@@ -104,6 +104,20 @@ class BuildJot():
         except:
             file.write(' }}\n')
 
+    def patch(self, obj, file):
+        # Write npr shader data to file.
+        file.write('       patch {\n')
+        file.write('         Patch {\n')
+        file.write('           cur_text     0\n')
+        file.write('           patchname     patch-0\n')
+        file.write('           texture {\n')
+        file.write('             NPRTexture {\n')
+        file.write('               npr_data_file { %s }\n' % ( self.basename ) )
+        file.write('             }\n')
+        file.write('           }\n')
+        file.write('         }\n') 
+        file.write('       }\n')
+
 
     def texbody(self, obj, file, filepath, update=False):
         # Write the TEXBODY for obj to file.
@@ -122,14 +136,11 @@ class BuildJot():
         file.write('    }\n')
         file.write('  }\n')
         file.write('  color {1 1 1}\n')
-        # TODO! Don't know if this is needed for animation.
         if self.anim:
             smfilename = ( '%s_%s.sm' % ( self.basename, obj.name ) )
             if update:
-                print(bpy.context.scene.frame_current)
                 smfilename = ( '%s_%s[%05d].sm' % ( self.basename, obj.name, bpy.context.scene.frame_current ) )
             smfilepath = os.path.join(os.path.split(filepath)[0], smfilename)
-            print(smfilepath)
             if update:
                 file.write('  mesh_data_update_file { %s }' % smfilename)
             else:
@@ -141,8 +152,8 @@ class BuildJot():
                 self.faces(obj, smfile)
                 self.creases(obj, smfile)
                 self.uvs(obj, smfile)
+                self.patch(obj, smfile)
             smfile.write('    }\n')
-            #smfile.write('  }\n')
             smfile.close()
         else:
             file.write('  mesh_data {\n')
@@ -156,6 +167,8 @@ class BuildJot():
             self.creases(obj, file)
             # UV's
             self.uvs(obj, file)
+            # Patch NPR data
+            self.patch(obj, file)
             # Closing LMESH, mesh_data and TEXBODY and creating it.
             file.write('    }\n')
             file.write('  }\n')
@@ -166,7 +179,7 @@ class BuildJot():
             file.write('CREATE { %s }\n\n' % obj.name)
 
     def camera(self, file):
-        # Write the camera to file. TODO! Does not work correctly.
+        # Write the camera to file.
         cam = bpy.context.scene.camera
         file.write('\nCHNG_CAM {\n')
         # from_point
@@ -227,28 +240,3 @@ class BuildJot():
         self.file.write('  }\n')
         self.file.write('}\n')
             
-
-
-    def unused(self):
-        pass
-        # CAMERA & VIEW
-        # Export Camera
-        # TODO! Aim at location, up vector and field of view.
-        # TODO! Camera is seemingly pointing in the right direction, but model is facing differently. Find out what axis jot is using for up.
-        # Set Windows size TODO! Don't know if this is needed.
-        #self.file.write('CHNG_WIN { 30 34 480 580 }\n')
-        # Set the View TODO! Don't know if this is needed, and insert correct data.
-        #self.file.write('CHNG_VIEW {\n')
-        #self.file.write('  VIEW {\n')
-        #self.file.write('    view_animator {\n')
-        #self.file.write('      Animator {\n')
-        #self.file.write('        fps            -1\n')
-        #self.file.write('        start_frame    -1\n')
-        #self.file.write('        end_frame      -1\n')
-        #self.file.write('        name { NULL_STR } \n')
-        #self.file.write('      }\n')
-        #self.file.write('    }\n')
-        #self.file.write('    view_data_file { NULL_STR }\n')
-        #self.file.write('  }\n')
-        #self.file.write('}\n')
-                

@@ -1,7 +1,19 @@
 #!BPY
 
+# LIMITATIONS!
+# - Exporting crease info will not work on multires or subdiv models. It will only export the crease info for the edge in the basemesh. This is not a limit of the exporter, but of how creases and subdivs are handled. The workaround is to Apply subdiv modifiers, and add creases to the subdivided mesh.
+
+# RUNNING JOT IN WINE
+# - Run cmd.exe in wine (e.g. wine /usr/lib/i386-linux-gnu/wine/fakedlls/cmd.exe )
+# - Modify jot/batch/jot-config.bat so that JOT_ROOT points to where jot is in your cmd.exe
+# - Run jot-config.bat from cmd.exe
+# - Go to where your .jot file
+# - Run jot using the full path (e.g. Z:\home\ragnar\Projects\jot\jot\bin\Q\jot.exe myJotFile.jot )
+# - On quitting jot the cmd.exe wil seem to hang. Use Ctrl-Z to put it in the background, and fg to put it back in the foreground. Now you should be able to type new commmands.
+# - Yes its complicated. :)
+
 bl_info = {
-    "name": "Jot Stylized Renderer (.jot) - beta",
+    "name": "Export to Jot Stylized Renderer (.jot) - beta",
     "author": "Ragnar Brynjulfsson",
     "version": (0, 0, 0),
     "blender": (2, 6, 3),
@@ -81,21 +93,3 @@ if __name__ == "__main__":
     register()
 
 
-# TODO!
-# - End frame is off. Frame 1 to 2, gives only one frame.
-# - Test with a rigged and animated character.
-# - Add support for exporting model, while keeping Jot annotation.
-# - Learn how to use Jot. :)
-# - Compile the damn thing on 64bit Linux. :P
-
-# LIMITATIONS!
-# - Exporting crease info will not work on multires or subdiv models. It will only export the crease info for the edge in the basemesh. This is not a limit of the exporter, but of how creases and subdivs are handled. The workaround is to Apply subdiv modifiers, and add creases to the subdivided mesh.
-
-# RUNNING JOT IN WINE
-# - Run cmd.exe in wine (e.g. wine /usr/lib/i386-linux-gnu/wine/fakedlls/cmd.exe )
-# - Modify jot/batch/jot-config.bat so that JOT_ROOT points to where jot is in your cmd.exe
-# - Run jot-config.bat from cmd.exe
-# - Go to where your .jot file
-# - Run jot using the full path (e.g. Z:\home\ragnar\jot\bin\Q\jot.exe myJotFile.jot )
-# - On quitting jot the cmd.exe wil seem to hang. Use Ctrl-Z to put it in the background, and fg to put it back in the foreground. Now you should be able to type new commmands.
-# - Yes its complicated. :)
