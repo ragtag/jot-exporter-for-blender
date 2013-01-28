@@ -20,9 +20,12 @@ class BuildJot():
         # Open file for writing.
         self.file = open(self.filepath, 'w')
         self.file.write('#jot\n')
-        # Loop through the scene and find all meshes
+        # Loop through the scene and find all meshes.
         bpy.ops.object.mode_set(mode='OBJECT');
-        for obj in bpy.context.scene.objects:
+        #for obj in bpy.context.scene.objects:
+        #    if obj.type == 'MESH':
+        #        self.texbody(obj, self.file, self.filepath)
+        for obj in bpy.context.selected_objects:
             if obj.type == 'MESH':
                 self.texbody(obj, self.file, self.filepath)
         # Export the camera settings.
@@ -108,7 +111,7 @@ class BuildJot():
         # Write npr shader data to file.
         file.write('       patch {\n')
         file.write('         Patch {\n')
-        file.write('           cur_text     0\n')
+        file.write('           cur_tex     0\n')
         file.write('           patchname     patch-0\n')
         file.write('           texture {\n')
         file.write('             NPRTexture {\n')
