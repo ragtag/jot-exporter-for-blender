@@ -12,9 +12,6 @@
 # - On quitting jot the cmd.exe wil seem to hang. Use Ctrl-Z to put it in the background, and fg to put it back in the foreground. Now you should be able to type new commmands.
 # - Yes its complicated. :)
 
-# TODO!
-# - Speed up writing, by writing chunks to RAM before committing them to file.
-
 bl_info = {
     "name": "Export to Jot Stylized Renderer (.jot) - beta",
     "author": "Ragnar Brynjulfsson",
@@ -52,7 +49,7 @@ class ExportJot(Operator, ExportHelper):
     anim = BoolProperty(
             name="Export animation",
             description="Export animation, not just model.",
-            default=True)
+            default=False)
     start = IntProperty(
             name="Start Frame",
             description="Starting frame for the animation",
