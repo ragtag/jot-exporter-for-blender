@@ -129,9 +129,9 @@ class BuildJot():
         file.write('\nTEXBODY {\n')
         file.write('  name  %s\n' % obj.name)
         file.write('  xform {{%s %s %s %s}{%s %s %s %s}{%s %s %s %s}{0 0 0 1}}\n' % ( \
-                obj.matrix_local[0][0], obj.matrix_local[0][1], obj.matrix_local[0][2], obj.matrix_local[0][3], \
-                obj.matrix_local[1][0], obj.matrix_local[1][1], obj.matrix_local[1][2], obj.matrix_local[1][3], \
-                obj.matrix_local[2][0], obj.matrix_local[2][1], obj.matrix_local[2][2], obj.matrix_local[2][3] ))
+                obj.matrix_world[0][0], obj.matrix_world[0][1], obj.matrix_world[0][2], obj.matrix_world[0][3], \
+                obj.matrix_world[1][0], obj.matrix_world[1][1], obj.matrix_world[1][2], obj.matrix_world[1][3], \
+                obj.matrix_world[2][0], obj.matrix_world[2][1], obj.matrix_world[2][2], obj.matrix_world[2][3] ))
         file.write('  xfdef  { DEFINER\n')
         file.write('    DEFINER {\n')
         file.write('      out_mask  1\n')
