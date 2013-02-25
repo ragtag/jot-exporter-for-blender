@@ -115,7 +115,7 @@ class BuildJot():
         file.write('           patchname     patch-0\n')
         file.write('           texture {\n')
         file.write('             NPRTexture {\n')
-        file.write('               npr_data_file { %s }\n' % ( self.basename ) )
+        file.write('               npr_data_file { %s_%s }\n' % ( self.basename, obj.name ) )
         file.write('             }\n')
         file.write('           }\n')
         file.write('         }\n') 
