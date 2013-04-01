@@ -20,20 +20,21 @@
 
 # LIMITATIONS!
 # - Exporting crease info will not work on multires or subdiv models. It will only export the crease info for the edge in the basemesh. This is not a limit of the exporter, but of how creases and subdivs are handled. The workaround is to Apply subdiv modifiers, and add creases to the subdivided mesh.
+# - Rendering to file does not work when you export without animation. As a workaround you can export a single frame of animation.
 
-# RUNNING JOT IN WINE
+# RUNNING JOT ON LINUX USING WINE
+# - Modify jot/batch/jot-config.bat so that JOT_ROOT points to where jot is installed in wine (e.g. C:\jot if installed in ~/.wine/drvie_c/jot).
 # - Run cmd.exe in wine (e.g. wine /usr/lib/i386-linux-gnu/wine/fakedlls/cmd.exe )
-# - Modify jot/batch/jot-config.bat so that JOT_ROOT points to where jot is in your cmd.exe
-# - Run jot-config.bat from cmd.exe
-# - Go to where your .jot file
-# - Run jot using the full path (e.g. Z:\home\ragnar\Projects\jot\jot\bin\Q\jot.exe myJotFile.jot )
-# - On quitting jot the cmd.exe wil seem to hang. Use Ctrl-Z to put it in the background, and fg to put it back in the foreground. Now you should be able to type new commmands.
-# - Yes its complicated. :)
+# - cd to jot/batch and run jot-config.bat from cmd.exe
+# - Go to where your .jot file is
+# - Run jot (jotq myJotFile.jot )
+# - Sometimes on quitting jot the cmd.exe will seem to hang. Use Ctrl-Z to put it in the background, and fg to put it back in the foreground. Now you should be able to type new commmands.
+# - Yes its hacky and complicated. :)
 
 bl_info = {
     "name": "Export to Jot Stylized Renderer (.jot)",
     "author": "Ragnar Brynjulfsson",
-    "version": (1, 0, 0),
+    "version": (0, 9, 0),
     "blender": (2, 6, 6),
     "location": "File > Import-Export > Jot Stylized Renderer (.jot)",
     "description": "Export selected models to Jot, a WYSIWYG NPR interactive stylized renderer (.jot)",
