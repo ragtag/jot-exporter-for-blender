@@ -33,9 +33,9 @@
 
 bl_info = {
     "name": "Export to Jot Stylized Renderer (.jot)",
-    "author": "Ragnar Brynjulfsson",
-    "version": (0, 9, 0),
-    "blender": (2, 6, 6),
+    "author": "Ragnar Brynjulfsson, Damien Picard (up axis fix)",
+    "version": (1, 0, 0),
+    "blender": (2, 6, 8),
     "location": "File > Import-Export > Jot Stylized Renderer (.jot)",
     "description": "Export selected models to Jot, a WYSIWYG NPR interactive stylized renderer (.jot)",
     "warning": "",
@@ -79,14 +79,18 @@ class ExportJot(Operator, ExportHelper):
             description="End frame for the animation",
             default=100
             )
-
+    y_correct = BoolProperty(
+            name = "Correct Y axis",
+            description = "Convert Z-up to Y-up",
+            default=True)
+    
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
     def execute(self, context):
         from . import export_jot
-        builder = export_jot.BuildJot(context, self.filepath, self.anim, self.start, self.end)
+        builder = export_jot.BuildJot(context, self.filepath, self.anim, self.start, self.end, self.y_correct)
         return {'FINISHED'}
 
     def invoke(self, context, event):

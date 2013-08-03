@@ -4,16 +4,19 @@ import bpy
 import os.path
 from mathutils import Vector, Euler
 from math import tan, radians
+from bpy_extras.io_utils import axis_conversion
 
 class BuildJot():
     # Build a jot file.
     
     
-    def __init__(self,context, filepath, anim, start, end):
+    def __init__(self,context, filepath, anim, start, end, y_correct):
         # Export Jot files(s) to disk.
         self.anim = anim
         self.start = start
         self.end = end
+        self.y_correct = y_correct
+        
         self.filepath = filepath
         self.basepath = os.path.splitext(filepath)[0]
         self.basename = os.path.splitext(os.path.basename(filepath))[0]
@@ -128,10 +131,14 @@ class BuildJot():
             file.write('\nUPDATE_GEOM { %s' % obj.name)
         file.write('\nTEXBODY {\n')
         file.write('  name  %s\n' % obj.name)
+        if self.y_correct:
+            temp_matrix = axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * obj.matrix_world
+        else:
+            temp_matrix = obj.matrix_world
         file.write('  xform {{%s %s %s %s}{%s %s %s %s}{%s %s %s %s}{0 0 0 1}}\n' % ( \
-                obj.matrix_world[0][0], obj.matrix_world[0][1], obj.matrix_world[0][2], obj.matrix_world[0][3], \
-                obj.matrix_world[1][0], obj.matrix_world[1][1], obj.matrix_world[1][2], obj.matrix_world[1][3], \
-                obj.matrix_world[2][0], obj.matrix_world[2][1], obj.matrix_world[2][2], obj.matrix_world[2][3] ))
+                temp_matrix[0][0], temp_matrix[0][1], temp_matrix[0][2], temp_matrix[0][3], \
+                temp_matrix[1][0], temp_matrix[1][1], temp_matrix[1][2], temp_matrix[1][3], \
+                temp_matrix[2][0], temp_matrix[2][1], temp_matrix[2][2], temp_matrix[2][3] ))
         file.write('  xfdef  { DEFINER\n')
         file.write('    DEFINER {\n')
         file.write('      out_mask  1\n')
@@ -186,15 +193,24 @@ class BuildJot():
         cam = bpy.context.scene.camera
         file.write('\nCHNG_CAM {\n')
         # from_point
-        from_point = cam.matrix_world.col[3]
+        if self.y_correct:
+            from_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * cam.matrix_world).col[3]
+        else:
+            from_point = cam.matrix_world.col[3]
         file.write('{ %s %s %s }' % ( from_point.x, from_point.y, from_point.z ) )
        # at_point
-        at_point = cam.matrix_world.col[2]
+        if self.y_correct:
+            at_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * cam.matrix_world).col[2]
+        else:
+            at_point = cam.matrix_world.col[2]
         at_point = at_point * -1
         at_point = at_point + from_point
         file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # up_point
-        up_point = cam.matrix_world.col[1]
+        if self.y_correct:
+            up_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * cam.matrix_world).col[1]
+        else:
+            up_point = cam.matrix_world.col[1]
         up_point = up_point + from_point
         file.write('{ %s %s %s }' % ( up_point.x, up_point.y, up_point.z ) )
         # center_point (that the camera will rotate about).
