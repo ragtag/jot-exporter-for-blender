@@ -34,9 +34,9 @@
 bl_info = {
     "name": "Export to Jot Stylized Renderer (.jot)",
     "author": "Ragnar Brynjulfsson, Damien Picard (up axis fix)",
-    "version": (1, 0, 0),
-    "blender": (2, 6, 8),
-    "location": "File > Import-Export > Jot Stylized Renderer (.jot)",
+    "version": (2, 0, 0),
+    "blender": (2, 80, 0),
+    "location": "File > Import-Export",
     "description": "Export selected models to Jot, a WYSIWYG NPR interactive stylized renderer (.jot)",
     "warning": "",
     "wiki_url": "",
@@ -44,9 +44,9 @@ bl_info = {
     "category": "Import-Export"}
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "export_jot" in locals():
-        imp.reload(export_jot)
+        importlib.reload(export_jot)
 
 import bpy
 from bpy.types import Operator
@@ -56,33 +56,35 @@ from bpy.props import IntProperty
 from bpy.props import BoolProperty
 
 
-class ExportJot(Operator, ExportHelper):
+class ExportJot(bpy.types.Operator, ExportHelper):
     # Export the file to .jot, readable by Jot WYSIWIG stylistic rendere.
-    bl_idname       = "jot_wysiwyg_renderer.jot";
-    bl_label        = "Export JOT";
-    bl_options      = {'PRESET'};
+    bl_idname       = "jot_wysiwyg_renderer.jot"
+    bl_label        = "Export JOT"
+    bl_options      = {'PRESET'}
 
-    filename_ext    = ".jot";
+    filename_ext    = ".jot"
+    filter_glob: StringProperty(default="*.jot", options={'HIDDEN'})
 
-    filter_glob = StringProperty(default="*.jot", options={'HIDDEN'})
-    anim = BoolProperty(
-            name="Export animation",
-            description="Export animation, not just model.",
-            default=False)
-    start = IntProperty(
-            name="Start Frame",
-            description="Starting frame for the animation",
-            default=1
-            )
-    end   = IntProperty(
-            name="End Frame",
-            description="End frame for the animation",
-            default=100
-            )
-    y_correct = BoolProperty(
-            name = "Correct Y axis",
-            description = "Convert Z-up to Y-up",
-            default=True)
+    anim: BoolProperty(
+        name="Export animation",
+        description="Export animation, not just model.",
+        default=False
+    )
+    start: IntProperty(
+        name="Start Frame",
+        description="Starting frame for the animation",
+        default=1
+    )
+    end: IntProperty(
+        name="End Frame",
+        description="End frame for the animation",
+        default=100
+    )
+    y_correct: BoolProperty(
+        name = "Correct Y axis",
+        description = "Convert Z-up to Y-up",
+        default=True
+    )
     
     @classmethod
     def poll(cls, context):
@@ -99,17 +101,21 @@ class ExportJot(Operator, ExportHelper):
         self.end = context.scene.frame_end
         return super().invoke(context, event)
 
+    def draw(self, context):
+        pass
 
-def menu_func(self, context):
-    self.layout.operator(ExportJot.bl_idname, text="Jot Stylized Renderer (.jot)");
+def menu_func_export(self, context):
+    self.layout.operator(
+        ExportJot.bl_idname,
+        text="Jot Stylized Renderer (.jot)")
 
 def register():
-    bpy.utils.register_module(__name__);
-    bpy.types.INFO_MT_file_export.append(menu_func);
+    bpy.utils.register_class(ExportJot)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
-    bpy.utils.unregister_module(__name__);
-    bpy.types.INFO_MT_file_export.remove(menu_func);
+    bpy.utils.unregister_class(ExportJot)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 
 if __name__ == "__main__":

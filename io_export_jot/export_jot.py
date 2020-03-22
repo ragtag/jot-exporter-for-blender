@@ -56,19 +56,22 @@ class BuildJot():
     def vertices(self, obj, file):
         # Write vertices to file.
         file.write('      vertices {{ ')
-        m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+        #m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+        m = obj.to_mesh()
         for vert in m.vertices:
             file.write('{ %s %s %s }' % ( vert.co.x, vert.co.y, vert.co.z ) )
         file.write('  }}\n')
         m.user_clear()
-        bpy.data.meshes.remove(m)
+        #bpy.data.meshes.remove(m)
+        obj.to_mesh_clear()
 
 
     def faces(self, obj, file):
         # Triangulate faces and write to file.
         file.write('      faces {{ ')
-        m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-        for tface in m.tessfaces:
+        #m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+        m = obj.to_mesh()
+        for tface in m.polygons:
             vert_index = tface.vertices
             if len(vert_index) == 3:
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[1], vert_index[2] ) )
@@ -77,7 +80,8 @@ class BuildJot():
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[2], vert_index[3] ) )
         file.write('  }}\n')
         m.user_clear()
-        bpy.data.meshes.remove(m)
+        #bpy.data.meshes.remove(m)
+        obj.to_mesh_clear()
 
     def creases(self, obj, file):
         # Write creased edges to file.
@@ -91,10 +95,11 @@ class BuildJot():
         # Write UV's to file.
         try:
             file.write('       texcoords2 {{ ')
-            m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+            #m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+            m = obj.to_mesh()
             face_count = 0
             # This fails if object has no UV's.
-            for tex_face in m.tessface_uv_textures.active.data:
+            for tex_face in m.polygons.tessface_uv_textures.active.data:
                 uvs = tex_face.uv
                 if len(uvs) == 3:
                     file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[1][0], uvs[1][1], uvs[2][0], uvs[2][1] ) )
@@ -106,7 +111,8 @@ class BuildJot():
                     face_count += 1
             file.write(' }}\n')
             m.user_clear()
-            bpy.data.meshes.remove(m)
+            #bpy.data.meshes.remove(m)
+            obj.to_mesh_clear()
         except:
             file.write(' }}\n')
 
@@ -132,7 +138,7 @@ class BuildJot():
         file.write('\nTEXBODY {\n')
         file.write('  name  %s\n' % obj.name)
         if self.y_correct:
-            temp_matrix = axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * obj.matrix_world
+            temp_matrix = axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() @ obj.matrix_world
         else:
             temp_matrix = obj.matrix_world
         file.write('  xform {{%s %s %s %s}{%s %s %s %s}{%s %s %s %s}{0 0 0 1}}\n' % ( \
@@ -168,7 +174,7 @@ class BuildJot():
         else:
             file.write('  mesh_data {\n')
             file.write('    LMESH {\n')
-            obj.data.update(calc_tessface=True)
+            obj.data.update(calc_edges=True)
             # Vertices
             self.vertices(obj, file)
             # Faces
@@ -194,13 +200,13 @@ class BuildJot():
         file.write('\nCHNG_CAM {\n')
         # from_point
         if self.y_correct:
-            from_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * cam.matrix_world).col[3]
+            from_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() @ cam.matrix_world).col[3]
         else:
             from_point = cam.matrix_world.col[3]
         file.write('{ %s %s %s }' % ( from_point.x, from_point.y, from_point.z ) )
        # at_point
         if self.y_correct:
-            at_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * cam.matrix_world).col[2]
+            at_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() @ cam.matrix_world).col[2]
         else:
             at_point = cam.matrix_world.col[2]
         at_point = at_point * -1
@@ -208,7 +214,7 @@ class BuildJot():
         file.write('{ %s %s %s }' % ( at_point.x, at_point.y, at_point.z ) )
         # up_point
         if self.y_correct:
-            up_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() * cam.matrix_world).col[1]
+            up_point = (axis_conversion(from_forward = '-Y', from_up = 'Z', to_forward = 'Z', to_up = 'Y').to_4x4() @ cam.matrix_world).col[1]
         else:
             up_point = cam.matrix_world.col[1]
         up_point = up_point + from_point
