@@ -25,9 +25,6 @@ class BuildJot():
         self.file.write('#jot\n')
         # Loop through the scene and find all meshes.
         bpy.ops.object.mode_set(mode='OBJECT');
-        #for obj in bpy.context.scene.objects:
-        #    if obj.type == 'MESH':
-        #        self.texbody(obj, self.file, self.filepath)
         for obj in bpy.context.selected_objects:
             if obj.type == 'MESH':
                 self.texbody(obj, self.file, self.filepath)
