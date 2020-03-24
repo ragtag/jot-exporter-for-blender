@@ -49,11 +49,12 @@ if "bpy" in locals():
         importlib.reload(export_jot)
 
 import bpy
-from bpy.types import Operator
+from bpy.props import (
+    StringProperty,
+    IntProperty,
+    BoolProperty
+)
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty
-from bpy.props import IntProperty
-from bpy.props import BoolProperty
 
 
 class ExportJot(bpy.types.Operator, ExportHelper):
@@ -102,7 +103,18 @@ class ExportJot(bpy.types.Operator, ExportHelper):
         return super().invoke(context, event)
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "anim")
+        layout.prop(operator, "start")
+        layout.prop(operator, "end")
+        layout.prop(operator, "y_correct")
+
 
 def menu_func_export(self, context):
     self.layout.operator(
