@@ -197,6 +197,8 @@ class BuildJot():
     def camera(self, file):
         # Write the camera to file.
         cam = bpy.context.scene.camera
+        if not cam:
+            return False
         file.write('\nCHNG_CAM {\n')
         # from_point
         if self.y_correct:
