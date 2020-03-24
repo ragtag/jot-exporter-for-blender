@@ -56,22 +56,21 @@ class BuildJot():
     def vertices(self, obj, file):
         # Write vertices to file.
         file.write('      vertices {{ ')
-        #m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-        m = obj.to_mesh()
-        for vert in m.vertices:
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        m = obj.evaluated_get(depsgraph)
+        for vert in m.data.vertices:
             file.write('{ %s %s %s }' % ( vert.co.x, vert.co.y, vert.co.z ) )
         file.write('  }}\n')
         m.user_clear()
-        #bpy.data.meshes.remove(m)
         obj.to_mesh_clear()
 
 
     def faces(self, obj, file):
         # Triangulate faces and write to file.
         file.write('      faces {{ ')
-        #m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-        m = obj.to_mesh()
-        for tface in m.polygons:
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        m = obj.evaluated_get(depsgraph)
+        for tface in m.data.polygons:
             vert_index = tface.vertices
             if len(vert_index) == 3:
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[1], vert_index[2] ) )
@@ -80,7 +79,6 @@ class BuildJot():
                 file.write('{ %s %s %s }' % ( vert_index[0], vert_index[2], vert_index[3] ) )
         file.write('  }}\n')
         m.user_clear()
-        #bpy.data.meshes.remove(m)
         obj.to_mesh_clear()
 
     def creases(self, obj, file):
@@ -95,11 +93,11 @@ class BuildJot():
         # Write UV's to file.
         try:
             file.write('       texcoords2 {{ ')
-            #m = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-            m = obj.to_mesh()
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            m = obj.evaluated_get(depsgraph)
             face_count = 0
             # This fails if object has no UV's.
-            for tex_face in m.polygons.tessface_uv_textures.active.data:
+            for tex_face in m.data.polygons.tessface_uv_textures.active.data:
                 uvs = tex_face.uv
                 if len(uvs) == 3:
                     file.write('{ %s { %s %s }{ %s %s }{ %s %s } }' % ( face_count, uvs[0][0], uvs[0][1], uvs[1][0], uvs[1][1], uvs[2][0], uvs[2][1] ) )
@@ -111,7 +109,6 @@ class BuildJot():
                     face_count += 1
             file.write(' }}\n')
             m.user_clear()
-            #bpy.data.meshes.remove(m)
             obj.to_mesh_clear()
         except:
             file.write(' }}\n')
