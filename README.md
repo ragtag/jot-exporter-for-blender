@@ -3,14 +3,14 @@
 Jot is a very cool standalone WYSIWYG interactive stylized renderer, developed at Princeton University around 2002-03. It has some unique features that make it very interesting even now, more than 10 years later.
 
 <img src="https://ragnarb.com/blog/wp-content/uploads/2013/04/david.gif" alt="Model of David by gabrielmda" />
-Model of David by <a href="http://www.blendswap.com/blends/view/65345" target="_blank" rel="noopener">gabrielmda</a> rendered in Jot
 
+Model of David by <a href="http://www.blendswap.com/blends/view/65345" target="_blank" rel="noopener">gabrielmda</a> rendered in Jot
 
 Jot can render stylized silhouettes of animated 3D models with temporal coherence, which means the lines don't jiggle or flicker as the model moves. How the outline is rendered is defined by drawing a sample line, and applying the same style to the whole model. In addition, Jot has support for hatching and drawing in details at different levels of detail, plus some basic surface shading.
 
 Jot works in real-time using OpenGL, so the artist can instantly see what she is doing. This means that rendering is extremely fast, as it's simply a question of stepping through the frames, and writing out images.
 
-Unfortunately Jot hasn't been actively developed for years, and there has been no easy way to get your models and animation into Jot for years, until now. That where my Jot Exporter for Blender comes in. It let's you export your models and animation from Blender 2.6x to Jot. It's still very much in beta, but as far as I know everything works (see limitations below). My hope is that this exporter will bring renewed interest in Jot, and maybe one day we'll see it [brought back to life][1].
+Unfortunately Jot hasn't been actively developed for years, and there has been no easy way to get your models and animation into Jot for years, until now. That where my Jot Exporter for Blender comes in. It let's you export your models and animation from Blender 2.6x to Jot. It's still very much in beta, but as far as I know everything works (see limitations below). My hope is that this exporter will bring renewed interest in Jot, and maybe one day we'll see it brought back to life.
 
 <a href="https://www.youtube.com/watch?v=gT9qU_fJNuw" target="_blank">Here</a> is a video from Siggraph 2002, that demonstrates some of the features of Jot.
 
@@ -111,7 +111,6 @@ If you find any bugs, please feel free to comment below.
   * WYSIWYG NPR: Interactive Stylization for Stroke-Based Rendering of 3D Animation 
       * <a href="http://gfx.cs.princeton.edu/pubs/_2004_WNI/" target="_blank" rel="noopener">http://gfx.cs.princeton.edu/pubs/_2004_WNI/</a>
 
- [1]: https://ragnarb.com/resurrecting-jot/ "Resurrecting Jot"
  [2]: http://www.winehq.org/
  [3]: https://ragnarb.com/downloads/jot.tar.gz "Jot Launcher for Linux"
  [4]: https://gfx.cs.princeton.edu/pubs/Kalnins_2003_CSS/index.php
